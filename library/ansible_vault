@@ -33,10 +33,15 @@ requirements: ["ansible-vault"]
 '''
 
 EXAMPLES = '''
-# Create a GRE backed Neutron network with tunnel id 1 for tenant1
-- neutron_network: name=t1network tenant_name=tenant1 state=present
-                   provider_network_type=gre provider_segmentation_id=1
-                   login_username=admin login_password=admin login_tenant_name=admin
+# This will create a remote vaulted file "/path/to/file.txt"
+# with "mysuperpassphrase" passphrase
+- name: create file
+  ansible_vault:
+    dest: /path/to/file.txt
+    passphrase: mysuperpassphrase
+    data: |
+      my = secret
+      data = ok!
 '''
 
 def _format(data):
