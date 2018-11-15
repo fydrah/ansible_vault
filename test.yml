@@ -1,0 +1,15 @@
+- hosts: all
+  connection: local
+  become: false
+  tasks:
+    - name: create file
+      ansible_vault:
+        dest: ./filetest.txt
+        data: |
+          hello
+          mon
+          kode: hello
+          opop:
+            heufr: "edeolde"
+          "json": ["kode", "opopde"]
+        passphrase: totolitoto

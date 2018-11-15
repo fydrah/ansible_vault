@@ -1,0 +1,86 @@
+#!/usr/bin/python
+#coding: utf-8 -*-
+
+try:
+    import re
+    import sys
+    from os import path
+    from ansible_vault import Vault
+    from ansible.module_utils._text import to_bytes
+except ImportError:
+    print("failed=True msg='ansible-vault is required'")
+
+DOCUMENTATION = '''
+---
+module: ansible_vault
+version_added: "2.6"
+short_description: Create/Update an ansible vaulted file
+description:
+   - Create or update an ansible vaulted file
+options:
+   dest:
+     description:
+        - target file
+     required: true
+   data:
+     description:
+        - content of file
+     required: true
+   passphrase:
+     description:
+        - Passphrase to use for encryption
+     required: true
+requirements: ["ansible-vault"]
+
+'''
+
+EXAMPLES = '''
+# Create a GRE backed Neutron network with tunnel id 1 for tenant1
+- neutron_network: name=t1network tenant_name=tenant1 state=present
+                   provider_network_type=gre provider_segmentation_id=1
+                   login_username=admin login_password=admin login_tenant_name=admin
+'''
+
+def _format(data):
+    return to_bytes(data)
+
+def _read_data(vaultc, file):
+    with open(file, 'rb') as fd:
+        return _format(vaultc.load_raw(fd.read()))
+
+def _write_data(vaultc, file, data):
+    with open(file, 'wb') as fd:
+        vaultc.dump_raw(data, fd)
+
+def main():
+
+    module = AnsibleModule(
+        argument_spec = dict(
+            dest = dict(type='str', required=True),
+            data = dict(type='str', required=True, no_log=True),
+            passphrase = dict(type='str', required=True, no_log=True),
+        ),
+    )
+
+    params = module.params
+
+    data = _format(params['data'])
+
+    #sys.stderr.write(str(type(data)))
+    #raise
+
+    vaultc = Vault(module.params['passphrase'])
+    if not path.isfile(module.params['dest']):
+        _write_data(vaultc, module.params['dest'], data)
+        module.exit_json(changed = True, result = "Success")
+    else:
+        data_in = _read_data(vaultc, module.params['dest'])
+        if data_in != data:
+            _write_data(vaultc, module.params['dest'], data)
+            module.exit_json(changed = True, result = "Success")
+        else:
+            module.exit_json(changed = False, result = "Success")
+
+# this is magic, see lib/ansible/module.params['common.py
+from ansible.module_utils.basic import *
+main()
