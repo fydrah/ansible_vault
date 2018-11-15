@@ -2,8 +2,6 @@
 #coding: utf-8 -*-
 
 try:
-    import re
-    import sys
     from os import path
     from ansible_vault import Vault
     from ansible.module_utils._text import to_bytes
@@ -65,9 +63,6 @@ def main():
     params = module.params
 
     data = _format(params['data'])
-
-    #sys.stderr.write(str(type(data)))
-    #raise
 
     vaultc = Vault(module.params['passphrase'])
     if not path.isfile(module.params['dest']):
